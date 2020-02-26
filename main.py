@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
 import os
+import time
 
 day_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" ]
 
@@ -32,14 +33,19 @@ def set_day(to):
 
 
 def rooms_available():
-	rooms = get_elements_by_css_selector('div.fc-rows:nth-child(2) table tbody tr')
+	rooms = driver.find_elements_by_css_selector('.fc-body tr div div div .fc-rows table tbody tr')
+
+	print("Number of rooms:", len(rooms))
+	
 	for room in rooms:
 		# tr td div div
 			#  a.s-lc-eq-checkout -- unavailable room
 			#  a.s-lc-eq-avail -- available room
 				# a.title split by space, 0 returns the time and am/pm
-		print('')
-
+		slots = room.find_elements_by_css_selector('td div div a.fc-timeline-event')
+		for slot in slots:
+			current = slot.get_attribute('title').split(' ')
+			print('Room {} at {} is {}'.format(current[7], current[0], current[9]))
 
 # -------------------
 print('Starting bot')
@@ -50,4 +56,11 @@ driver = webdriver.Firefox(options=options, service_log_path=os.devnull)
 driver.get('https://libcal.uccs.edu/reserve/groupstudy')
 print('Navigating to libcal.uccs.edu')
 
+# TODO: Check if it is over 4 hours
+times = ['1:00pm', '3:00pm']
+
 set_day(day_of_week.index('Friday'))
+
+# time.sleep(1)
+
+rooms_available()
