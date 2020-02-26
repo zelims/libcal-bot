@@ -19,8 +19,7 @@ print('Starting bot')
 
 options = Options()
 # options.headless = True
-#, service_log_path=os.devnull
-driver = webdriver.Firefox(options=options)
+driver = webdriver.Firefox(options=options, service_log_path=os.devnull)
 driver.get('https://libcal.uccs.edu/reserve/groupstudy')
 print('Navigating to libcal.uccs.edu')
 
