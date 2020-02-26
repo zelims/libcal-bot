@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 import os
 import time
@@ -61,25 +62,27 @@ def rooms_available(floor):
 # -------------------
 print('Starting bot')
 
+times = ['1:00pm', '3:00pm']
+floor = 2 + 1 # second floor is the first floor imo
+
+timespan = datetime.strptime(times[1], '%H:%M%p') - datetime.strptime(times[0], '%H:%M%p')
+if timespan > timedelta(hours=4):
+	print("You cannot reserve a room over 4 hours")
+	exit()
+
 options = Options()
 options.headless = True
 driver = webdriver.Firefox(options=options, service_log_path=os.devnull)
 driver.get('https://libcal.uccs.edu/reserve/groupstudy')
 print('Navigating to libcal.uccs.edu')
 
-# TODO: Check if it is over 4 hours
-times = ['1:00pm', '3:00pm']
-floor = 2 + 1 # second floor is the first floor imo
-
 set_day(day_of_week.index('Friday'))
 
-# time.sleep(1)
 rooms = rooms_available(floor)
 for room in rooms:
 	print(room, ': ', end = '')
 	for i in range(len(rooms[room])):
 		print(rooms[room][i], end = ' ')
 	print('\n-----')
-
 
 driver.close()
