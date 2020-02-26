@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
+from collections import defaultdict
+
 import os
 import time
 
@@ -32,12 +34,10 @@ def set_day(to):
 	print("Reserving a room for", day_of_week[get_day_of_week()], get_date())
 
 
-def rooms_available():
-	rooms = driver.find_elements_by_css_selector('.fc-body tr div div div .fc-rows table tbody tr')
-
-	print("Number of rooms:", len(rooms))
-	
-	for room in rooms:
+def rooms_available(floor):
+	room_list = driver.find_elements_by_css_selector('.fc-body tr div div div .fc-rows table tbody tr')
+	rooms = defaultdict(list)
+	for room in room_list:
 		# tr td div div
 			#  a.s-lc-eq-checkout -- unavailable room
 			#  a.s-lc-eq-avail -- available room
@@ -45,7 +45,18 @@ def rooms_available():
 		slots = room.find_elements_by_css_selector('td div div a.fc-timeline-event')
 		for slot in slots:
 			current = slot.get_attribute('title').split(' ')
-			print('Room {} at {} is {}'.format(current[7], current[0], current[9]))
+			# 7:30am Friday, February 28, 2020 - Room 212 - Available
+			# current[0] - time
+			# current[1] - day of week
+			# current[2] - month
+			# current[3] - day of month
+			# current[4] - year
+			# current[7] - room number
+			# current[9] - status
+			if current[7].startswith(str(floor)) and current[9].lower() == "available":
+				rooms[current[7]].append(current[0])
+
+	return rooms
 
 # -------------------
 print('Starting bot')
@@ -58,9 +69,17 @@ print('Navigating to libcal.uccs.edu')
 
 # TODO: Check if it is over 4 hours
 times = ['1:00pm', '3:00pm']
+floor = 2 + 1 # second floor is the first floor imo
 
 set_day(day_of_week.index('Friday'))
 
 # time.sleep(1)
+rooms = rooms_available(floor)
+for room in rooms:
+	print(room, ': ', end = '')
+	for i in range(len(rooms[room])):
+		print(rooms[room][i], end = ' ')
+	print('\n-----')
 
-rooms_available()
+
+driver.close()
