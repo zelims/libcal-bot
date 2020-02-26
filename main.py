@@ -35,9 +35,11 @@ def set_day(to):
 	print("Reserving a room for", day_of_week[get_day_of_week()], get_date())
 
 
-def rooms_available(floor):
+def rooms_available(floor, times):
 	room_list = driver.find_elements_by_css_selector('.fc-body tr div div div .fc-rows table tbody tr')
+	temp_rooms = defaultdict(list)
 	rooms = defaultdict(list)
+
 	for room in room_list:
 		# tr td div div
 			#  a.s-lc-eq-checkout -- unavailable room
@@ -54,16 +56,20 @@ def rooms_available(floor):
 			# current[4] - year
 			# current[7] - room number
 			# current[9] - status
-			if current[7].startswith(str(floor)) and current[9].lower() == "available":
-				rooms[current[7]].append(current[0])
+			if (current[7].startswith(str(floor)) or floor == 0) and current[9].lower() == "available":
+				temp_rooms[current[7]].append(current[0])
 
+	for room in temp_rooms:
+		for i in range(len(temp_rooms[room])):
+			if times[0] <= temp_rooms[room][i] <= times[1]:
+				rooms[room].append(temp_rooms[room][i])
 	return rooms
 
 # -------------------
 print('Starting bot')
 
 times = ['1:00pm', '3:00pm']
-floor = 2 + 1 # second floor is the first floor imo
+floor = -1 + 1 # second floor is the first floor imo
 
 timespan = datetime.strptime(times[1], '%H:%M%p') - datetime.strptime(times[0], '%H:%M%p')
 if timespan > timedelta(hours=4):
@@ -78,7 +84,7 @@ print('Navigating to libcal.uccs.edu')
 
 set_day(day_of_week.index('Friday'))
 
-rooms = rooms_available(floor)
+rooms = rooms_available(floor, times)
 for room in rooms:
 	print(room, ': ', end = '')
 	for i in range(len(rooms[room])):
