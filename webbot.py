@@ -53,6 +53,20 @@ class WebBot:
 
 		return rooms
 
+	def reserve_room(self, number, times): 
+		self.driver.find_element_by_xpath("//a[contains(@title, '" + times[0] + "') and contains(@title, '" + number + "')]").click()
+
+		# select time
+		#select = self.driver.find_element_by_xpath("//select[@id='bookingend_1']/option[contains(text(), '" + times[1] + "')]")
+		select = self.driver.find_element_by_xpath("//select[@id='bookingend_1']")
+		all_options = select.find_elements_by_tag_name("option")
+		for option in all_options:
+			if times[1] in option.text:
+				print('Clicked ' + option.text)
+				option.click()
+
+		self.driver.find_element_by_xpath('//button[@id="submit_times"]').click()
+
 	def __init__(self, startTime, endTime, floor):
 		print('Creating new webbot')
 		times = [startTime, endTime]
@@ -68,7 +82,7 @@ class WebBot:
 		times.append((timespan.seconds/3600) * 2 + 1)
 
 		options = Options()
-		options.headless = True
+		#options.headless = True
 		self.driver = webdriver.Firefox(options=options, service_log_path=os.devnull)
 		self.driver.get('https://libcal.uccs.edu/reserve/groupstudy')
 		print('Navigating to libcal.uccs.edu')
@@ -76,6 +90,7 @@ class WebBot:
 		self.set_day(self.day_of_week.index('Friday'))
 
 		rooms = self.rooms_available(floor, times)
+		self.reserve_room(next(iter(rooms)), times)
 
 		print('Reserved room!')
 		self.driver.close()
