@@ -1,13 +1,15 @@
 import discord
 import os
 import webbot
+import json
 
-token = os.getenv('DISCORD_TOKEN')
 client = discord.Client()
 
 class DiscordBot:
 	def __init__(self):
-		client.run(token)
+		with open('config.json') as f:
+			config = json.load(f)
+		client.run(config["token"])
 
 	@client.event
 	async def on_ready():
@@ -21,11 +23,12 @@ class DiscordBot:
 
 		if message.content.startswith('!reserve'):
 			params = message.content.split(' ')
-			if len(params) == 4:
+			if len(params) == 5:
 				if params[3] == "1":
 					await message.channel.send("There are no study rooms on the 1st floor!")
 				else:
-					await message.channel.send("Reserving a room from {} - {} on the {} floor.".format(params[1], params[2], params[3]))
-					bot = webbot.WebBot(params[1], params[2], params[3])
+					await message.channel.send("Reserving a room... please wait!")
+					bot = webbot.WebBot()
+					await message.channel.send(bot.create(params[1], params[2], params[3], params[4]))
 			else:
-				await message.channel.send("What do you want?!")
+				await message.channel.send("!reserve [day of week] [start time] [end time] [floor]")
